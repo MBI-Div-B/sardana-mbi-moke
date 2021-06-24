@@ -1,4 +1,5 @@
 from sardana.macroserver.macro import imacro, macro, Macro, Type, Optional
+from tango import DeviceProxy
 import PyTango
 import numpy as np
 
@@ -88,12 +89,14 @@ def magnrep(self):
 
 @macro()
 def magnon(self):
-    self.execMacro('send2ctrl caenfastpsctrl MON')
-    self.output('Magnet output switched ON- Did you switch on the magnet chiller?')
+    Magnet=DeviceProxy('tango://angstrom.hhg.lab:10000/moke/CAENFastPS/1K5-15-100')
+    Magnet.enable()
+    self.output('Magnet output switched ON')
 
 @macro()
 def magnoff(self):
-    self.execMacro('send2ctrl caenfastpsctrl MOFF')
+    Magnet=DeviceProxy('tango://angstrom.hhg.lab:10000/moke/CAENFastPS/1K5-15-100')
+    Magnet.disable()
     self.output('Magnet output switched OFF')
 
 @imacro([["pumpHor", Type.Float, Optional, "pumpHor"],
@@ -230,44 +233,3 @@ def powerrep(self):
     self.output('Power Settings  : P0 = %.4f W | Pm = %.4f W |'
                 ' offset = %.2f deg | period = %.2f', 
                 power.P0, power.Pm, power.offset, power.period)
-
-class plotselect(Macro):
-    """
-    plotselect counter1 counter2 ... (change plot display of active measurement
-    group)
-    """
-    param_def = [
-          ['plotChs', [['plotChs', Type.String, 'None', ""], 
-                       {'min' :0 }],
-               None, ""]
-     ]
-
-    def run(self, plotChs):
-        mntGrp = self.getEnv('ActiveMntGrp')
-        self.mntGrp = self.getObj(mntGrp, type_class=Type.MeasurementGroup)
-        cfg = self.mntGrp.getConfiguration()
-        channels = self.mntGrp.getChannels()
-        channelNames = []
-
-        # Enable Plot only in the channels passed.
-        for channel in channels:
-            if channel['enabled']:
-                channelNames.append(channel['name'])
-                if channel['name'] in plotChs:
-                    # Enable Plot
-                    self.info("Plot channel %s" % channel['name'])
-                    channel['plot_type'] = 1
-                    channel['plot_axes'] = ['<mov>']
-                else:
-                    # Disable Plot
-                    channel['plot_type'] = 0
-                    channel['plot_axes'] = []
-
-        # check if plotChs exists
-        for plotCh in plotChs:
-            if plotCh not in channelNames:
-                self.warning('channel %s is not enabled or does not exist in'
-                             ' the current measurement group' % plotCh)
-
-        # Force set Configuration.
-        self.mntGrp.setConfiguration(cfg.raw_data)

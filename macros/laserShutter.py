@@ -1,68 +1,64 @@
-from epics import caget, caput
 import time
 
+from tango import DeviceProxy
 from sardana.macroserver.macro import macro
 
 @macro()
 def laseron(self):
-    """Macro laserOn"""
-    pvPrefix = 'SHUTTER:NOPA:'
-    shutterState = caget(pvPrefix + 'Shutter_RBV', as_string=True)
-    if shutterState == "Open":
-        self.output("Laser shutter already open")
+    """Macro LaserOn"""
+    
+    Laser=DeviceProxy('tango://angstrom.hhg.lab:10000/laser/ThorlabsMFF100/opa')
+    if Laser.mffstate==1:
+        self.output("Laser shutter is already open")
     else:
-        caput(pvPrefix + 'Flip', 3)
+        Laser.open()
         time.sleep(1)
-        shutterState = caget(pvPrefix + 'Shutter_RBV', as_string=True)
-        if shutterState == "Open":
+        if Laser.mffstate==1:
             self.output("Laser shutter opened")
         else:
             self.output("Could not open Laser shutter")
 
 @macro()
 def laseroff(self):
-    """Macro laserOn"""
-    pvPrefix = 'SHUTTER:NOPA:'
-    shutterState = caget(pvPrefix + 'Shutter_RBV', as_string=True)
-    if shutterState == "Closed":
-        self.output("Laser shutter already closed")
+    """Macro LaserOff"""
+    
+    Laser=DeviceProxy('tango://angstrom.hhg.lab:10000/laser/ThorlabsMFF100/opa')
+    if Laser.mffstate==0:
+        self.output("Laser shutter is already closed")
     else:
-        caput(pvPrefix + 'Flip', 3)
+        Laser.close()
         time.sleep(1)
-        shutterState = caget(pvPrefix + 'Shutter_RBV', as_string=True)
-        if shutterState == "Closed":
+        if Laser.mffstate==0:
             self.output("Laser shutter closed")
         else:
             self.output("Could not close Laser shutter")
 
 @macro()
 def pumpon(self):
-    """Macro laserOn"""
-    pvPrefix = 'SHUTTER:MOKE:'
-    shutterState = caget(pvPrefix + 'Shutter_RBV', as_string=True)
-    if shutterState == "Open":
-        self.output("Pump shutter already open")
+    """Macro PumpOn"""
+    
+    Pump=DeviceProxy('tango://angstrom.hhg.lab:10000/moke/ThorlabsMFF100/pump')
+    if Pump.mffstate==1:
+        self.output("Pump shutter is already open")
     else:
-        caput(pvPrefix + 'Flip', 3)
+        Pump.open()
         time.sleep(1)
-        shutterState = caget(pvPrefix + 'Shutter_RBV', as_string=True)
-        if shutterState == "Open":
+        if Pump.mffstate==1:
             self.output("Pump shutter opened")
         else:
             self.output("Could not open Pump shutter")
 
 @macro()
 def pumpoff(self):
-    """Macro laserOn"""
-    pvPrefix = 'SHUTTER:MOKE:'
-    shutterState = caget(pvPrefix + 'Shutter_RBV', as_string=True)
-    if shutterState == "Closed":
-        self.output("Pump shutter already closed")
+    """Macro PumpOff"""
+    
+    Pump=DeviceProxy('tango://angstrom.hhg.lab:10000/moke/ThorlabsMFF100/pump')
+    if Pump.mffstate==0:
+        self.output("Pump shutter is already closed")
     else:
-        caput(pvPrefix + 'Flip', 3)
+        Pump.close()
         time.sleep(1)
-        shutterState = caget(pvPrefix + 'Shutter_RBV', as_string=True)
-        if shutterState == "Closed":
+        if Pump.mffstate==0:
             self.output("Pump shutter closed")
         else:
             self.output("Could not close Pump shutter")

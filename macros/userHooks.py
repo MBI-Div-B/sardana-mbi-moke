@@ -8,7 +8,7 @@ from sardana.macroserver.macro import macro, Type
 import time
 from dirsync import sync
 import os
-from PyTango import DeviceProxy
+# from tango import DeviceProxy
 
 @macro()
 def userPreAcq(self):
@@ -26,10 +26,10 @@ def userPreAcq(self):
         ampl        = magnConf['ampl']
         magwaittime = magnConf['waitTime']
         magnet      = self.getMotion(["magnet"])
-        magnetState = DeviceProxy('hhg/MagnetState/moke')
+        # magnetState = DeviceProxy('hhg/MagnetState/moke')
         
         magnet.move(-1*ampl)
-        magnetState.magnet = -1*ampl
+        # magnetState.magnet = -1*ampl
         
         self.debug('mag. waiting for %.2f s', magwaittime)
         time.sleep(magwaittime)        
@@ -41,7 +41,7 @@ def userPreAcq(self):
             state, data = mnt_grp.count(integ_time)
                        
         magnet.move(+1*ampl)
-        magnetState.magnet = +1*ampl
+        # magnetState.magnet = +1*ampl
         
         self.debug('mag. waiting for %.2f s', magwaittime)
         time.sleep(magwaittime)                
@@ -53,6 +53,9 @@ def userPreScan(self):
     acqConf  = self.getEnv('acqConf')
     altOn    = acqConf['altOn']
     
+    # disable deterministic scans
+    # https://github.com/sardana-org/sardana/pull/1427
+    # https://github.com/sardana-org/sardana/issues/1426
     if altOn:
         parent = self.getParentMacro()
         if parent:
